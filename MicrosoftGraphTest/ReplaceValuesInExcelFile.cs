@@ -7,7 +7,7 @@ using Azure.Identity;
 
 namespace MicrosoftGraphTest;
 
-public static class ReplaceNamedItemsInExcelFile
+public static class ReplaceValuesInExcelFile
 {
     /// <summary>
     /// This script is a part of a bigger project where we want to create a new offer based on a template.
@@ -15,7 +15,7 @@ public static class ReplaceNamedItemsInExcelFile
     /// 1. Find a template file in a specific folder.
     /// 2. Ask user to choose a template file.
     /// 3. Create a copy of the selected template file in a target folder.
-    /// 4. Replace named items in the copied file.
+    /// 4. Replace values in table.
     /// 
     /// Business case:
     /// We have a Team group (with corresponding SharePoint site), on OneDrive of this group we have a folder with *.xlsx files containing templates for offers.
@@ -39,6 +39,7 @@ public static class ReplaceNamedItemsInExcelFile
 
         // It's not necessary to define any scope because they're already defined in the app registration.
         var token = await credential.GetTokenAsync(new TokenRequestContext());
+        Console.WriteLine($"Token: {token.Token}");
 
         // We need to use HttpClient to send requests to the Graph API.
         var client = new HttpClient();
@@ -57,7 +58,7 @@ public static class ReplaceNamedItemsInExcelFile
         var templateFileId = templateFiles?[0]?["id"]?.ToString();
         var targetFileId = await CreateCopyOfTemplateFile(client, token, driveId, templateFileId, targetFolderPath);
 
-        await ReplaceNamedItems(client, token, driveId, targetFileId);
+        await ReplaceVariables(client, token, driveId, targetFileId);
 
         Console.ReadLine();
     }
@@ -145,21 +146,41 @@ public static class ReplaceNamedItemsInExcelFile
         return targetFileId;
     }
 
-    public static async Task ReplaceNamedItems(HttpClient client, AccessToken token, string driveId, string fileItemId)
+    public static async Task ReplaceVariables(HttpClient client, AccessToken token, string driveId, string fileItemId)
     {
-        var url = $"https://graph.microsoft.com/v1.0/drives/{driveId}/items/{fileItemId}/workbook/names";
+        var url = $"https://graph.microsoft.com/v1.0/drives/{driveId}/items/{fileItemId}/workbook/tables/ZmienneTabela/range?$select=values";
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
         var response = await client.SendAsync(request);
         var responseContent = await response.Content.ReadAsStringAsync();
-        var namedItems = JsonSerializer.Deserialize<JsonNode>(responseContent)?["value"]?.AsArray();
+        var rows = JsonSerializer.Deserialize<JsonNode>(responseContent)?["values"]?.AsArray();
 
-        foreach (var namedItem in namedItems)
+        var updatedRows = new List<List<string>>();
+        foreach (var row in rows)
         {
-            var name = namedItem?["name"]?.ToString();
-            var value = namedItem["value"]?.ToString();
-            Console.WriteLine($"Name: {name} (${value})");
+            var updatedRow = new List<string>();
+            foreach(var cell in row.AsArray())
+            {
+                var cellValue = cell.ToString();
+                if (cellValue.Contains("."))
+                {
+                    cellValue = cellValue.Replace(".", "...");
+                }
+                updatedRow.Add(cellValue);
+            }
+            updatedRows.Add(updatedRow);
         }
+
+        var updateUrl = $"https://graph.microsoft.com/v1.0/drives/{driveId}/items/{fileItemId}/workbook/tables/ZmienneTabela/range";
+        var updateRequest = new HttpRequestMessage(HttpMethod.Patch, updateUrl);
+        updateRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+        updateRequest.Content = JsonContent.Create(new
+        {
+            values = updatedRows,
+        });
+
+        var updateResponse = await client.SendAsync(updateRequest);
+        updateResponse.EnsureSuccessStatusCode();
     }
 }
