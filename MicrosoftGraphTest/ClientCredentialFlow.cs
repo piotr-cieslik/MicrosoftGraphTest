@@ -10,9 +10,9 @@ public static class ClientCredentialFlow
 {
     public static async Task Run()
     {
-        var clientId = Environment.GetEnvironmentVariable("GRAPH_API_CLIENT_ID");
-        var tenantId = Environment.GetEnvironmentVariable("GRAPH_API_TENANT_ID");
-        var clientSecret = Environment.GetEnvironmentVariable("GRAPH_API_CLIENT_SECRET");
+        var clientId = Environment.GetEnvironmentVariable("GRAPH_API_TEST_SPA_CLIENT_ID");
+        var tenantId = Environment.GetEnvironmentVariable("GRAPH_API_TEST_SPA_TENANT_ID");
+        var clientSecret = Environment.GetEnvironmentVariable("GRAPH_API_TEST_SPA_CLIENT_SECRET");
 
         var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 

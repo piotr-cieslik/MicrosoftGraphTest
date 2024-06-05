@@ -26,9 +26,9 @@ public static class ReplaceValuesInExcelFile
     /// </summary>
     public static async Task Run()
     {
-        var clientId = Environment.GetEnvironmentVariable("GRAPH_API_CLIENT_ID");
-        var tenantId = Environment.GetEnvironmentVariable("GRAPH_API_TENANT_ID");
-        var siteId = Environment.GetEnvironmentVariable("GRAPH_API_SITE_ID");
+        var clientId = Environment.GetEnvironmentVariable("GRAPH_API_TEST_SPA_CLIENT_ID");
+        var tenantId = Environment.GetEnvironmentVariable("GRAPH_API_TEST_SPA_TENANT_ID");
+        var siteId = Environment.GetEnvironmentVariable("GRAPH_API_TEST_SITE_ID");
         var templateFolderPath = "/oferty-szablony";
         var targetFolderPath = "/oferty";
 
@@ -65,7 +65,7 @@ public static class ReplaceValuesInExcelFile
 
     public static async Task<string> GetDriveIdOfSite(HttpClient client, AccessToken token)
     {
-        var siteId = Environment.GetEnvironmentVariable("GRAPH_API_SITE_ID");
+        var siteId = Environment.GetEnvironmentVariable("GRAPH_API_TEST_SITE_ID");
 
         var url = $"https://graph.microsoft.com/v1.0/sites/{siteId}/drive";
         var request = new HttpRequestMessage(HttpMethod.Get, url);

@@ -16,8 +16,8 @@ public static class GetAllUsersWithPagination
     /// </summary>
     public static async Task Run()
     {
-        var clientId = Environment.GetEnvironmentVariable("GRAPH_API_CLIENT_ID");
-        var tenantId = Environment.GetEnvironmentVariable("GRAPH_API_TENANT_ID");
+        var clientId = Environment.GetEnvironmentVariable("GRAPH_API_TEST_SPA_CLIENT_ID");
+        var tenantId = Environment.GetEnvironmentVariable("GRAPH_API_TEST_SPA_TENANT_ID");
 
         // We need any instance of TokenCredential to get the token.
         // Where we use InteractiveBrowserCredential to get the token interactively (browser).
